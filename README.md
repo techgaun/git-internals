@@ -2,6 +2,8 @@
 
 > An overview of git internals
 
+This repo consists of the talk given at PayLease's Show and Tell on 06/21/2019.
+
 Git has a content-addressable filesystem as the layer which acts as KV store in a way.
 You give some content to git and git gives you a 40 character sha1 hash. You can then
 use the sha1 hash in the future to talk with git about that content.
@@ -77,3 +79,13 @@ show up on `git reflog` subcommand.
 if the `pre-commit` hook returns non-zero exit code.
 - `post-receive` - usage could be for pushing code to the production.
 - to enable hooks, overwrite or create one of the scripts in `.git/hooks` and make it executable.
+
+## Git plumbing vs porcelain commands
+
+- Most of the commands we use on our day to day interaction with git are porcelain commands that are much simpler to
+use. Think of them as the frontend for git with simplified interface.
+- There are another sets of commands that are lower level and can be composed together to form the porcelain commands.
+These commands are called plumbing commands.
+- As we explore further, we will look at some of the plumbing commands here in a bit with example.
+- Some of the plumbing commands we will look at are `hash-object`, `update-index`, `write-tree`, `commit-tree` and
+`cat-file`.
