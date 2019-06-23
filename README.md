@@ -89,3 +89,14 @@ These commands are called plumbing commands.
 - As we explore further, we will look at some of the plumbing commands here in a bit with example.
 - Some of the plumbing commands we will look at are `hash-object`, `update-index`, `write-tree`, `commit-tree` and
 `cat-file`.
+
+## Git objects
+
+4 types of Objects:
+
+- `blob` (binary large object) - the data we want git to store and version
+- `tree` - pointers to file names, contents & other trees. A git tree object creates hierarchy between files and
+directories in a git repository.
+- `commit` - tree of changes together with some additional metadata (like author, commit message, committer, etc.). It
+represents snapshot of the state of the repository.
+- `tag` - For annotated tags which contains hash of tagged object (usually commits are tagged).
