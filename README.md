@@ -2,6 +2,10 @@
 
 > An overview of git internals
 
+Git has a content-addressable filesystem as the layer which acts as KV store in a way.
+You give some content to git and git gives you a 40 character sha1 hash. You can then
+use the sha1 hash in the future to talk with git about that content.
+
 ## [Slides](slides.md) - Use with `mdp slides.md`
 
 ## Walkthrough
