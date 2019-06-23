@@ -100,3 +100,41 @@ directories in a git repository.
 - `commit` - tree of changes together with some additional metadata (like author, commit message, committer, etc.). It
 represents snapshot of the state of the repository.
 - `tag` - For annotated tags which contains hash of tagged object (usually commits are tagged).
+
+## Git references
+
+- names that point to sha1 hashes.
+- stored in directories inside `.git/refs`.
+- `heads` contain branch references.
+- `tags` contain tag references.
+- `remotes` contain references on remote urls added.
+
+## Git packfiles
+
+- Git stores objects on disk in so called loose object format initially.
+- It would be inefficient if git kept on storing entire content everytime we make change on a file.
+- Git occasionally packs up several of these loose objects into a single binary file called packfile to save space and
+be more efficient. This allows storing versions of objects in the form of deltas.
+
+## Git gc/reflog/fsck
+
+### gc
+
+- performs cleanup and optimizes the repository.
+- several housekeepings such as compressing file revisions, removing unreachable objects, packing refs and pruning
+reflogs & stale working trees.
+- As it relates to packfiles, it gathers up loose objects & places them in packfiles. Also, it consolidates packfiles
+into a single large packfile as necessary.
+- Auto gc happens once in a while as git deems necessary for example when you try to push to remote.
+
+### reflog
+
+- git records what repo's `HEAD` is everytime it changes which we call `reflog`.
+- stored in `.git/logs` directory.
+- can be useful to recover accidentally deleted branches.
+
+### fsck
+
+- Integrity check of your objects in the database.
+- Often gives us the knowledge of dangling objects that can no longer be reached.
+- Could be potentially useful in cases when we don't have reflogs.
