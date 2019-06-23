@@ -507,3 +507,7 @@ dangling commit fed6ba87e445db5175c628cfecbbd0b83526a54a
 # now that we know our dangling commit, we can recover that commit just like earlier
 $ git branch master-recovered-new fed6ba87e445db5175c628cfecbbd0b83526a54a
 ```
+
+## Author
+
+- [techgaun](https://github.com/techgaun)
