@@ -449,3 +449,61 @@ $ tree .git
 # there's git show-index command to which you can pipe .idx file
 # I leave that as homework for you to look into that and see what you will see in those
 ```
+
+### reflog and fsck
+
+```shell
+# lets move master branch to the first commit
+$ git reset --hard 86aa1cb
+HEAD is now at 86aa1cb initial commit
+
+# now we don't have the top commit because none of the branches reach to that commit
+# if you come back at later point in time, you will not remember sha1 hash
+# which means we effectively lost that commit
+# imagine that it was not intended action, how could we recover?
+# given that our master branch had that commit at some point of time,
+# reflog records that meaning we can recover that commit
+$ git reflog
+86aa1cb (HEAD -> master) HEAD@{0}: reset: moving to 86aa1cb
+fed6ba8 HEAD@{1}: reset: moving to HEAD
+fed6ba8 HEAD@{2}: 
+86aa1cb (HEAD -> master) HEAD@{3}:
+
+# here we see the sha1 hash of our commit fed6ba8
+# and now we can create new branch from that commit effectively saving us from disaster
+$ git branch master-recovered fed6ba8
+
+# lets checkout to the newly recovered branch
+$ git checkout master-recovered
+
+# now lets look at the log and we see that we have the lost commit back. Voila!
+$ git log --oneline
+fed6ba8 (HEAD -> master-recovered) Added new file
+86aa1cb (master) initial commit
+
+# now imagine that our reflogs were gone
+# is there a possibility of recovery in such case?
+# maybe? fsck may help although its not straightforward, esp. in large repos
+# to mimic loss of reflog, lets delete .git/logs
+$ rm -rf .git/logs
+
+# and if we check our reflog, its empty
+$ git reflog
+
+# lets delete master-recovered branch once again
+$ git branch -D master-recovered
+Deleted branch master-recovered (was fed6ba8).
+
+# now lets run fsck with --full argument
+# --full is default in recent git versions which means you don't have to specify it anymore
+# this performs a full fledged database verification
+$ git fsck --full
+Checking object directories: 100% (256/256), done.
+Checking objects: 100% (6/6), done.
+dangling commit fed6ba87e445db5175c628cfecbbd0b83526a54a
+
+# and if you look above, we see dangling commit
+# which is the commit that got lost in oblivion
+# now that we know our dangling commit, we can recover that commit just like earlier
+$ git branch master-recovered-new fed6ba87e445db5175c628cfecbbd0b83526a54a
+```
