@@ -336,3 +336,116 @@ $ git log --oneline
 fed6ba8 (HEAD -> master) Added new file
 86aa1cb initial commit
 ```
+
+## Other Examples
+
+We will continue to operate on the above repository we created earlier
+
+### gc and packfile
+
+```shell
+# lets look at the size of .git/objects once
+# and as per the output below, we are at around 41K with our git object
+
+$ du -b .git/objects/
+4096	.git/objects/pack
+4224	.git/objects/86
+4096	.git/objects/info
+4150	.git/objects/3a
+4177	.git/objects/c4
+4124	.git/objects/55
+4227	.git/objects/0a
+4255	.git/objects/fe
+4207	.git/objects/c7
+41652	.git/objects/
+
+# and now lets look at the tree of .git directory after all the things we did
+# hooks directory is not shown here to preserve space
+$ tree .git
+.git
+├── branches
+├── config
+├── description
+├── HEAD
+├── hooks
+├── index
+├── info
+│   └── exclude
+├── logs
+│   ├── HEAD
+│   └── refs
+│       └── heads
+│           └── master
+├── objects
+│   ├── 0a
+│   │   └── 9c3e68d37858d478ad2692e01126e6851d1c93
+│   ├── 3a
+│   │   └── 3aff7fa9639da674465c43fac565c1291f952b
+│   ├── 55
+│   │   └── 7db03de997c86a4a028e1ebd3a1ceb225be238
+│   ├── 86
+│   │   └── aa1cb0eec333b600d5b8c23c9c95d4983d5e6d
+│   ├── c4
+│   │   └── 996cfea245445e4bdb0561bf18e29436568e58
+│   ├── c7
+│   │   └── fc1d8f722cc984f6c90f4151de8b250eeb6343
+│   ├── fe
+│   │   └── d6ba87e445db5175c628cfecbbd0b83526a54a
+│   ├── info
+│   └── pack
+└── refs
+    ├── heads
+    │   └── master
+    └── tags
+
+19 directories, 26 files
+
+# Now lets see if we can optimize our repo like git promises to by running gc
+$ git gc
+
+# And once again, lets see the size of .git/objects
+$ du -b .git/objects/
+5855	.git/objects/pack
+4150	.git/objects/info
+4227	.git/objects/0a
+18328	.git/objects/
+
+# many of the objects are gone as we see above
+# and our git object database is down to 18K
+# if we look at the tree of .git repo, it will be different now
+$ tree .git
+.git
+├── branches
+├── config
+├── description
+├── HEAD
+├── hooks
+├── index
+├── info
+│   ├── exclude
+│   └── refs
+├── logs
+│   ├── HEAD
+│   └── refs
+│       └── heads
+│           └── master
+├── objects
+│   ├── 0a
+│   │   └── 9c3e68d37858d478ad2692e01126e6851d1c93
+│   ├── info
+│   │   └── packs
+│   └── pack
+│       ├── pack-5dda0074f5c0745e99fad6c6d639ca69f009091e.idx
+│       └── pack-5dda0074f5c0745e99fad6c6d639ca69f009091e.pack
+├── packed-refs
+└── refs
+    ├── heads
+    └── tags
+
+13 directories, 24 files
+
+# As we see above, we have .git/objects/pack with two files .idx and .pack
+# git has optimized our repository and created packfile like we said earlier
+# there's git show-index command to which you can pipe .idx file
+# I leave that as homework for you to look into that and see what you will see in those
+```
