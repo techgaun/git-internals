@@ -138,3 +138,61 @@ into a single large packfile as necessary.
 - Integrity check of your objects in the database.
 - Often gives us the knowledge of dangling objects that can no longer be reached.
 - Could be potentially useful in cases when we don't have reflogs.
+
+## Working Example
+
+We will run series of commands and see how things work under the hood based on the understanding from information above.
+We've already created `git_demo` repository earlier while looking at the tree structure of `.git` directory.
+
+```shell
+# lets create a simple text file
+$ echo "Hello World" > readme.md
+
+# now we can see what would the sha1 hash of readme.md according to git
+# the way it works is, a format of data is created as below and then sha1 hash for that is created
+# <type_of_object> <size_of_object><nullbyte><content_of_object> | sha1_hash_function
+$ git hash-object readme.md
+557db03de997c86a4a028e1ebd3a1ceb225be238
+
+# we can replicate what git did by doing something like below:
+# blob is the type of object in this case
+# as you can see below, the hash matches, simple ;)
+$ echo -e "blob $(wc -m readme.md | cut -d' ' -f1)\000$(cat readme.md)" | sha1sum 
+557db03de997c86a4a028e1ebd3a1ceb225be238  -
+
+# we ran hash-object which is a git plumbing command
+# however that doesn't add our content to object database until we instruct git to do so
+# next we will do that
+# open a new terminal (or tmux split) with the following command
+$ watch -n 0.5 tree .git
+
+# now we will hash the object and ask git to store it in git object database as well
+# when we do so, git will create new directory .git/objects/55
+# and create file with name `7db03de997c86a4a028e1ebd3a1ceb225be238`
+# first two characters of sha1 hash form directory and rest the filenames
+# thats how git organizes objects in its objects database.
+$ git hash-object -w readme.md
+557db03de997c86a4a028e1ebd3a1ceb225be238
+
+# next we will cat the content of file
+$ cat .git/objects/55/7db03de997c86a4a028e1ebd3a1ceb225be238 
+xK��OR04b�H����/�I�A�I
+
+# above we see some unrecognizable text and thats not what we saved though
+# git saves our content with header + nullbyte + content as we saw earlier
+# we can use git cat-file plumbing command to look at the object we just created.
+$ git cat-file -p 557db03de997c86a4a028e1ebd3a1ceb225be238
+Hello World
+
+# and now lets look at the type of the file
+$ git cat-file -t 557db03de997c86a4a028e1ebd3a1ceb225be238
+blob
+
+# now the reason the raw content of object is some sort of gibberish
+# is because its stored after running zlib compression
+# lets see what it has in there
+# as we see next, it stores type of object (blob) and content length (12)
+# and actual content separated by nullbyte character.
+$ cat .git/objects/55/7db03de997c86a4a028e1ebd3a1ceb225be238 | zlib-flate -uncompress
+blob 12Hello World
+```
