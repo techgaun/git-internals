@@ -276,4 +276,63 @@ $ git update-ref refs/heads/master 86aa1cb0eec333b600d5b8c23c9c95d4983d5e6d
 # we just made a commit to git without using normal commands we are used to with
 $ git log --oneline
 86aa1cb (HEAD -> master) initial commit
+
+# now lets create another commit with the earlier commit id as the parent
+# we repeat same stuff again, this time we create file with much larger content
+$ printf 'Hello World.%.0s' {1..1000} > new.md
+
+# lets check the status real quick
+$ git status -s
+?? new.md
+
+# now lets add that file to staging area
+# note that we will skip hash-object this time
+# and the reason why it still works is because
+# update-index goes through the process of hashing all the objects
+# while adding them to the staging area
+$ git update-index --add new.md
+
+# and if we check status, we see its added to the staging area
+$ git status -s
+A  new.md
+
+$ git write-tree
+c4996cfea245445e4bdb0561bf18e29436568e58
+
+# now lets inspect that tree
+# we see that this tree contains complete snapshot of what we have in the git repo
+$ git cat-file -p c4996cfea245445e4bdb0561bf18e29436568e58
+100644 blob c7fc1d8f722cc984f6c90f4151de8b250eeb6343	new.md
+100644 blob 557db03de997c86a4a028e1ebd3a1ceb225be238	readme.md
+
+# and now lets make commit object with our newly created tree
+# as you will see, we pass part of commit hash from first commit we made
+# as you can see, we only passed 7 first characters of hash
+# as long as git can resolve the part of hash into an object,
+# we can use such short partials of sha1 hash
+$ echo "Added new file" | git commit-tree c4996cfea245445e4bdb0561bf18e29436568e58 -p 86aa1cb
+fed6ba87e445db5175c628cfecbbd0b83526a54a
+
+# we can do cat-file on commit object as well
+# note the parent line in this case
+$ git cat-file -p fed6ba87e445db5175c628cfecbbd0b83526a54a
+tree c4996cfea245445e4bdb0561bf18e29436568e58
+parent 86aa1cb0eec333b600d5b8c23c9c95d4983d5e6d
+author techgaun <coolsamar207@gmail.com> 1561258195 -0500
+committer techgaun <coolsamar207@gmail.com> 1561258195 -0500
+
+Added new file
+
+# also, lets look at the type of commit object with cat-file
+$ git cat-file -t fed6ba87e445db5175c628cfecbbd0b83526a54a
+commit
+
+# finally, lets update master ref to this commit
+$ git update-ref refs/heads/master fed6ba87e445db5175c628cfecbbd0b83526a54a
+
+# and lets check the git log one more time
+# and we see things as expected
+$ git log --oneline
+fed6ba8 (HEAD -> master) Added new file
+86aa1cb initial commit
 ```
